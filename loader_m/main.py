@@ -33,10 +33,10 @@ import json
 
 #iniciando LED
 try:
-    GPIO.setup(21, GPIO.OUT) # LED 1
-    GPIO.setup(6, GPIO.OUT)
-    GPIO.setup(5, GPIO.OUT)
-    GPIO.setup(13, GPIO.OUT)
+    #GPIO.setup(21, GPIO.OUT) # LED 1
+    #GPIO.setup(6, GPIO.OUT)
+    #GPIO.setup(5, GPIO.OUT)
+    #GPIO.setup(13, GPIO.OUT)
     GPIO.setup(26, GPIO.OUT) #led run
     GPIO.setup(12, GPIO.OUT) # speaker
     GPIO.setup(20, GPIO.OUT) # Motor fornalha
@@ -46,10 +46,10 @@ try:
     GPIO.output(7, False)  # Acende o LED 1
     GPIO.output(18, False)  # Acende o LED 2
 
-    GPIO.output(21, True)  # Acende o LED 1
-    GPIO.output(5, True)  # Acende o LED 2
-    GPIO.output(6, True)  # Acende o LED 3
-    GPIO.output(13, True)  # Acende o LED 4
+    #GPIO.output(21, True)  # Acende o LED 1
+    #GPIO.output(5, True)  # Acende o LED 2
+    #GPIO.output(6, True)  # Acende o LED 3
+    #GPIO.output(13, True)  # Acende o LED 4
 
 except RuntimeError as error:
     capture_exception(error)
@@ -390,39 +390,27 @@ def PulaEtapa():
     try:
         if configFaixa.etapa == 'Personalizada':
             configFaixa.etapa = 'Amarelação'
-            GPIO.output(21, True)  # Acende o LED 1
-            GPIO.output(5, False)  # Acende o LED 2
-            GPIO.output(6, False)  # Acende o LED 3
-            GPIO.output(13, False)  # Acende o LED 4
+            display_temp.show('etap')
+            display_humid.show('amar')
         elif configFaixa.etapa == 'Amarelação':
             configFaixa.etapa =  'Murchamento'
-            GPIO.output(21, False)  # Acende o LED 1
-            GPIO.output(5, True)  # Acende o LED 2
-            GPIO.output(6, False)  # Acende o LED 3
-            GPIO.output(13, False)  # Acende o LED 4
+            display_temp.show('etap')
+            display_humid.show('murc')
         elif configFaixa.etapa ==  'Murchamento':
             configFaixa.etapa = 'Secagem da Lâmina'
-            GPIO.output(21, False)  # Acende o LED 1
-            GPIO.output(5, False)  # Acende o LED 2
-            GPIO.output(6, True)  # Acende o LED 3
-            GPIO.output(13, False)  # Acende o LED 4        
+            display_temp.show('etap')
+            display_humid.show('lami')      
         elif configFaixa.etapa == 'Secagem da Lâmina':
             configFaixa.etapa = 'Secagem do Talo'
-            GPIO.output(21, False)  # Acende o LED 1
-            GPIO.output(5, False)  # Acende o LED 2
-            GPIO.output(6, False)  # Acende o LED 3
-            GPIO.output(13, True)  # Acende o LED 4
+            display_temp.show('etap')
+            display_humid.show('talo')
         elif configFaixa.etapa == 'Secagem do Talo':
             configFaixa.etapa = 'Personalizada'
-            GPIO.output(21, False)  # Apaga o LED 1
-            GPIO.output(5, False)  # Apaga o LED 2
-            GPIO.output(6, False)  # Apaga o LED 3
-            GPIO.output(13, False)  # Apaga o LED 4
+            display_temp.show('etap')
+            display_humid.show('----')
         else:
-            GPIO.output(21, True)  # Acende o LED 1
-            GPIO.output(5, True)  # Acende o LED 2
-            GPIO.output(6, True)  # Acende o LED 3
-            GPIO.output(13, True)  # Acende o LED 4        
+            display_temp.show('etap')
+            display_humid.show('----')     
     except Exception as e:
         verificaLedEtapa('')
         print(f"Erro Ao acender LED: {e}")
@@ -434,35 +422,23 @@ def verificaLedEtapa(etapa_faixa):
 
     try:
         if etapa_faixa == 'Amarelação':
-            GPIO.output(21, True)  # Acende o LED 1
-            GPIO.output(5, False)  # Acende o LED 2
-            GPIO.output(6, False)  # Acende o LED 3
-            GPIO.output(13, False)  # Acende o LED 4
+            display_temp.show('etap')
+            display_humid.show('amar')
         elif etapa_faixa == 'Murchamento':
-            GPIO.output(21, False)  # Acende o LED 1
-            GPIO.output(5, True)  # Acende o LED 2
-            GPIO.output(6, False)  # Acende o LED 3
-            GPIO.output(13, False)  # Acende o LED 4
+            display_temp.show('etap')
+            display_humid.show('murc')
         elif etapa_faixa == 'Secagem da Lâmina':
-            GPIO.output(21, False)  # Acende o LED 1
-            GPIO.output(5, False)  # Acende o LED 2
-            GPIO.output(6, True)  # Acende o LED 3
-            GPIO.output(13, False)  # Acende o LED 4        
+            display_temp.show('etap')
+            display_humid.show('lami')     
         elif etapa_faixa == 'Secagem do Talo':
-            GPIO.output(21, False)  # Acende o LED 1
-            GPIO.output(5, False)  # Acende o LED 2
-            GPIO.output(6, False)  # Acende o LED 3
-            GPIO.output(13, True)  # Acende o LED 4
+            display_temp.show('etap')
+            display_humid.show('talo')
         elif etapa_faixa == 'Personalizada':
-            GPIO.output(21, False)  # Acende o LED 1
-            GPIO.output(5, False)  # Acende o LED 2
-            GPIO.output(6, False)  # Acende o LED 3
-            GPIO.output(13, False)  # Acende o LED 4        
+            display_temp.show('etap')
+            display_humid.show('----')       
         else:
-            GPIO.output(21, True)  # Acende o LED 1
-            GPIO.output(5, True)  # Acende o LED 2
-            GPIO.output(6, True)  # Acende o LED 3
-            GPIO.output(13, True)  # Acende o LED 4 
+            display_temp.show('etap')
+            display_humid.show('----')
     except Exception as error:
         capture_exception(error)
         print('erro no acender led etapa', error)       
