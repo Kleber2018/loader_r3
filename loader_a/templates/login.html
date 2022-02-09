@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Estufa</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <div class="container">
+        <!--criamos um container que vai exibir as mensagens de alerta-->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <!--condição para as mensagens-->
+                <ul id="messages" class="list-unstyled">
+                    <!--criamos um laço de repetição para essas mensagens de alerta-->
+                {% for message in messages %}
+                    <li class="alert alert-success">{{ message }}</li>
+                    <!--chamada da mensagem-->
+                {% endfor %}
+                <!--fim do for-->
+                </ul>
+            {% endif %}
+            <!--fim do if-->
+        {% endwith %}
+
+        <h1>Faça seu login</h1>
+        <form method="POST" action="{{ url_for('autenticar') }}">
+            <input type="hidden" name="proxima" value="{{ proxima or url_for('index') }}">
+            <p><label>Usuario:</label> <input class="form-control" type="text" name="login" required></p>
+            <p><label>Senha:</label> <input class="form-control" type="password" name="senha" required></p>
+            <p><button class="btn btn-primary" type="submit">Entrar</button></p>
+        </form>
+    </div>
+</body>
+</html>

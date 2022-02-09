@@ -1,0 +1,144 @@
+{% extends "template.html" %}
+<!--criamos um bloco de conteúdo a ser interpretado pelo python-->
+{% block conteudo %}
+    <head>
+        <meta http-equiv="refresh" content="30" >
+    </head>
+     {% if a == 0 %}
+        <div style="width:60%; background-color: #ffc107; font-size: large; font-weight: bold; z-index: 1000; position: absolute; padding: 30px; opacity: 0.9; ">
+            <p>!!!!!! ATENÇÃO !!!!!!!!</p>
+            <p>SEU PRODUTO APRESENTA PROBLEMAS NA ATIVAÇÃO E ALGUMAS FUNCIONALIDADES ESTÃO LIMITADAS, ENTRE EM CONTATO COM O SUPORTE: dev.kleber@gmail.com</p>
+        </div>
+    {% endif %}
+
+        <table class="table table-striped table-responsive table-bordered">
+            <thead>
+                <tr>
+                    <th>Horário</th>
+                    <th>Temperatura</th>
+                    <th>Umidade</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="text-align: center; font-weight: bolder; font-size: 110%;">{{ medicao.upd }}</td>
+                    <td style="background-color: #dd7f88; text-align: center; font-weight: bolder; font-size: 120%;">{{ medicao.temp }} º{{ medicao.escala }}</td>
+                    <td style="background-color: #7f97e6; text-align: center; font-weight: bolder; font-size: 120%;">{{ medicao.umid }}%</td>
+                </tr>
+            </tbody>
+        </table>
+    <div style="width:100%;">
+        <canvas id="myChart" value="{{medicoes}}"></canvas>
+    </div>
+
+
+    
+    <table class="table table-striped table-responsive table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Descrição</th>
+                <th>Temperatura</th>
+                <th>Umidade</th>
+                <th>Data</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!--criamos uma estrutura de repetição com o Jinja2 para preencher nossa tabela com os dados dos pokemons-->
+            {% for alerta in alertas  %}
+
+                        <tr style="background-color: #e4606d">
+                            <td id="alerta">{{ alerta.id }}</td>
+                            <td>{{ alerta.descricao }}</td>
+                            <td>{{ alerta.temperatura }}</td>
+                            <td>{{ alerta.umidade }}</td>
+                            <td>{{ alerta.created }}</td>
+                        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a class="btn btn-primary" href="/silenciaralertas" role="button" style="margin-block-end: 16px">Silenciar alertas</a>
+
+    <table class="table table-striped table-responsive table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Temperatura</th>
+                <th>Umidade</th>
+                <th>Data</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!--criamos uma estrutura de repetição com o Jinja2 para preencher nossa tabela com os dados dos pokemons-->
+            {% for medicao in medicoes  %}
+            
+                        <tr>
+                            <td id="medicao">{{ medicao.id }}</td>
+                            <td>{{ medicao.temperatura }}</td>
+                            <td>{{ medicao.umidade }}</td>
+                            <td>{{ medicao.data }}</td>
+                        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        // var m = {{ medicoes | tojson }}
+        // console.log('medicao', m)
+        // console.log({{ umidades | tojson }})
+        // console.log(document.getElementById('myChart').valueOf())
+        // console.log( {{ medicoes | tojson }} )
+        var ctx = document.getElementById('myChart');
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ dias | tojson }},
+                datasets: [{
+                    label: 'Temperatura',
+                    data: {{ temperaturas | tojson }},
+                    backgroundColor: 'rgb(255,254,254, 0)',
+                    borderColor: 'rgb(193,17,17)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Umidade',
+                    data: {{ umidades | tojson }},
+                    backgroundColor: 'rgb(246,246,245, 0)',
+                    borderColor: 'rgb(13,61,208)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: 'Medições de Temperatura e Umidade'
+                },
+                hover: {
+                    mode: 'nearest',
+                    intersect: true
+                },
+                scales: {
+                   xAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Month'
+                        }
+                    }],
+                    yAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Value'
+                        }
+                    }]
+                }
+            }
+        });
+    </script>
+{% endblock %}
+
+
+<!--encerramos o bloco de código a ser interpretado pelo python-->

@@ -1,0 +1,12 @@
+loader_banco.db
+login_livre.conf
+loader.conf
+monitor_banco4.db
+conf_banco.db
+load.conf
+firebase.conf
+*.pem
+cloud.conf
+key.conf
+sentry.conf
+umid_banco.db

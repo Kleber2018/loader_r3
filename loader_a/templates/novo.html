@@ -1,0 +1,61 @@
+{% extends "template.html" %}
+{% block conteudo %}
+    <form action="{{ url_for('criar') }}" method="post">
+        <fieldset>
+          <div class="form-group">
+            <label for="Nome">Nome</label>
+            <input type="text" id="Nome" name="Nome" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="Telefone">Telefone</label>
+            <input type="text" id="Telefone" name="Telefone" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="Email">E-mail</label>
+            <input type="text" id="Email" name="Email" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="login">login</label>
+            <input type="text" id="login" name="login" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="login">Senha</label>
+            <input type="password" id="Senha" name="Senha" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-salvar">Salvar</button>
+        </fieldset>
+    </form>
+
+    <table class="table table-striped table-responsive table-bordered" style="margin-top: 16px">
+        <thead>
+            <tr>
+                <th>login</th>
+                <th>Nome</th>
+                <th>Telefone</th>
+                <th>E-mail</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!--criamos uma estrutura de repetição com o Jinja2 para preencher nossa tabela com os dados dos pokemons-->
+            {% for user in usuarios  %}
+
+                        <tr>
+                            <td id="user">{{ user.login }}</td>
+                            <td>{{ user.nome }}</td>
+                            <td>{{ user.telefone }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                              <form action="{{ url_for('excluiruser') }}" method="post">
+                                <input type="text" id="login" name="login" value='{{ user.login }}' class="form-control" style="width: 0px; height: 0px; visibility: hidden;">
+                                <button type="submit" class="btn btn-warning btn-salvar" style="margin-top: -8px;">Excluir</button>
+                              </form>
+                           </td>
+                        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+
+<script>
+  var excluir = 1
+</script>

@@ -1,0 +1,53 @@
+{% extends "template.html" %}
+{% block conteudo %}
+    <form action="{{ url_for('salvarconfig') }}" method="post">
+        <fieldset>
+          <div class="form-group">
+            <label for="etapa">Etapa</label>
+            <input type="text" id="etapa" name="etapa" value={{ config.etapa }} class="form-control" required>
+              <span>Personalizada, Amarelação, Murchamento,</span>
+          </div>
+          <div class="form-group">
+            <label for="escala_temp">Escala de Temperatura: Celsius ou Fahrenheit</label>
+            <input type="text" id="escalaTemp" name="escalaTemp" value={{ config.escala_temp }} class="form-control" required>
+              <span>F, C</span>
+          </div>
+          <div class="form-group">
+            <label for="intervalo">Intervalo de medicao em segundos</label>
+            <input type="number" id="intervalo" name="intervalo" value={{ config.intervalo_seconds }} class="form-control" required>
+              <span>5min:300, 1hora: 3600</span>
+          </div>
+            <p>Configuração de alerta</p>
+          <!--<div class="form-group">
+            <label for="temperaturaMinima">Temperatura Mínima</label>
+            <input type="number" id="temperaturaMinima" name="temperaturaMinima" value={{ config.temp_min }} class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="temperaturaMaxima">Temperatura Máxima</label>
+            <input type="number" id="temperaturaMaxima" name="temperaturaMaxima" value={{ config.temp_max }} class="form-control" required>
+          </div>
+        -->
+          <div class="form-group">
+            <label for="umidAjuste">Sensibilidade da Umidade relativa</label>
+            <input type="number" id="umidAjuste" name="umidAjuste" value={{ config.umid_ajuste }} class="form-control" required>
+              <span>Porcentagem de correção: 1, 2</span>
+          </div>
+          <div class="form-group">
+            <label for="alertaDesat">Tempo do alerta desativado</label>
+            <input type="number" id="alertaDesat" name="alertaDesat" value={{ config.alerta_desat }} class="form-control" required>
+              <span>0 ativado, ou tempo em segundos desativado</span>
+          </div>
+          <div class="form-group">
+            <label for="speaker">Desativar alerta sonoro</label>
+            <input type="number" id="speaker" name="speaker" value={{ config.speaker }} class="form-control" required>
+              <span>0 deligado, 1 ligado</span>
+          </div>
+          <div class="form-group">
+            <label for="obs">Observação</label>
+            <input type="text" id="obs" name="obs" value={{ config.obs }} class="form-control">
+          </div>
+
+          <button type="submit" class="btn btn-success btn-salvar">Salvar</button>
+        </fieldset>
+    </form>
+{% endblock %}

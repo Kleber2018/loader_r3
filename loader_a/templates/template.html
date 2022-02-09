@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Estufa</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+    <script src="../static/Chart.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+        <!--cria container onde as mensagens serão exibidas-->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <!--condição para exibição das mensagens-->
+                <ul id="messages" class="list-unstyled">
+                    <!--laço e repetição para exibição das mensagens-->
+                {% for message in messages %}
+                    <li class="alert alert-success">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+                <!--fim dos laços-->
+        <div class="page-header">
+            <h1>{{ titulo }}</h1>
+        </div>
+        {% block conteudo %}{% endblock %}
+    </div>
+    <div style="width: 100%;margin: 16px; align-content: center">
+        {% if logado == 0 %}
+            <a class="btn btn-success" href="/login" role="button">Login </a>
+        {% endif %}
+        {% if logado == 1 %}
+            <a class="btn btn-secondary" href="/logout" role="button">Logout </a>
+        {% endif %}
+        <a class="btn btn-light" href="/novo" role="button">Usuarios</a>
+        <a class="btn btn-light" href="/config" role="button">Configuração </a>
+        <a class="btn btn-primary" href="/" role="button">Tela Inicial</a>
+    </div>
+
+  </body>
+</html>
