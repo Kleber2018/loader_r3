@@ -47,19 +47,6 @@ try:
     GPIO.output(18, False)  # Acende o LED 2
 
     GPIO.output(27, False)  # Acende o LED 2
-    print('off')
-    time.sleep(20)
-    GPIO.output(27, True)  # Acende o LED 2
-    print('on')
-    time.sleep(20)
-    GPIO.output(27, False)  # Acende o LED 2
-    print('off')
-    time.sleep(20)
-    GPIO.output(27, True)  # Acende o LED 2
-    print('on')
-    time.sleep(20)
-    GPIO.output(27, False)  # Acende o LED 2
-    print('off')
     #GPIO.output(21, True)  # Acende o LED 1
     #GPIO.output(5, True)  # Acende o LED 2
     #GPIO.output(6, True)  # Acende o LED 3
@@ -76,7 +63,6 @@ except Exception as error:
 import tm1637
 global display_temp
 global display_humid
-global display_time
 try:
     display_temp = tm1637.TM1637(23, 24, 4) #clk=5, dio=4, luminosidade=1 á 10
     display_temp.show('inic')
@@ -91,12 +77,6 @@ except Exception as error:
     print('Erro no display', error)
     capture_exception(error)
 
-try:
-    display_time = tm1637.TM1637(17, 27, 1)
-    display_time.numbers(00,00)
-except Exception as error:
-    print('Erro no display', error)
-    capture_exception(error)
 
 
 time.sleep(0.4)
@@ -163,6 +143,7 @@ def speaker_alerta(stat, vr, ct_mudo):#se retornar 1 é pq está habilitado o al
 
 def motor_fornalha_acionamento(stat, vr):#se retornar 1 é pq está habilitado o motor
     try:
+        print('acionando comando 153:', stat, vr)
         if vr == 1:
             GPIO.output(27, stat) #True or False
         else:
@@ -680,7 +661,8 @@ def main():
 
     while True:
         hora = datetime.now()
-        display_time.numbers(hora.hour, hora.minute)
+
+        #print(hora.hour, hora.minute)
         if desligar == 1:
             display_temp.write([0, 0, 0, 0])
             display_humid.write([0, 0, 0, 0])
@@ -856,17 +838,16 @@ def main():
             if temperatura_fahrenheit > 0:
                 if temperatura_fahrenheit < configFaixa.temp_min - 1:
                     motor_fornalha_cont += 1
-                    if motor_fornalha_cont > 1: #almentar para 3
+                    if motor_fornalha_cont > 3: #almentar para 3
                         if motor_fornalha_status == False:
                             motor_fornalha_status = True
                             print('-----------------ligar motor ventoinha')
                             motor_fornalha_acionamento(motor_fornalha_status, 1)
                 else:
                     motor_fornalha_cont = 0
-                    if motor_fornalha_status == True:
-                        motor_fornalha_status = False
-                        print('desligar motor ventoinha')
-                        motor_fornalha_acionamento(motor_fornalha_status, 1)
+                    motor_fornalha_status = False
+                    print('desligar motor ventoinha')
+                    motor_fornalha_acionamento(motor_fornalha_status, 1)
 
         
         #em produção trocar para 10min
