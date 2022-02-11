@@ -153,14 +153,14 @@ def verificarAlerta(temperatura, umidade, config, bd_umid, configGeral):
     global r
     r = 0
     if temperatura > 0:
-        if temperatura < config.temp_max + 3:
+        if temperatura < config.temp_max - 3:
             r = 12 #TB
-        elif temperatura > config.temp_min - 3:
+        elif temperatura > config.temp_min + 3:
             r = 11 #TA
     if umidade > 0:
-        if umidade < config.umid_max + 2:
+        if umidade < config.umid_max - 3:
             r = r + 36 #HB
-        elif umidade > config.umid_min - 2:
+        elif umidade > config.umid_min + 3:
             r = r + 33 #HA
     return r
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #python3 /home/estufaTabaco/main.py
 
+from ast import Try
 import time
 import board
 import RPi.GPIO as GPIO
@@ -131,7 +132,6 @@ while True:
 from simple_pid import PID
 
 
-
 def speaker_alerta(stat, vr, ct_mudo):#se retornar 1 é pq está habilitado o alerta
     try:
         if vr == 1 and ct_mudo < 2:
@@ -203,26 +203,32 @@ def set_led_run(vr):
         print('erro no led status')
 
 
+global DS18B20status
+DS18B20status = False
+
 
 def iniciaSensorTemp():
     try:
+        global DS18B20status
         # Numero dos pinos da Raspberry Pi configurada no modo Broadcom.
         # Pull-up interno habilitado, necessita de um sinal nivel lógico baixo para ser acionado.
         base_dir = '/sys/bus/w1/devices/'
         device_folder = glob.glob(base_dir + '28*')[0]
         device_file = device_folder + '/w1_slave'
         GPIO.setmode(GPIO.BCM)
+        DS18B20status = True
         return device_file
     except RuntimeError as error:
         print('Sensor temperatura erro21', error.args[0])
         set_display_temp('er21', 'T')
         capture_exception(error)
+        DS18B20status = False
         return False
     except Exception as error:
         print('Sensor temperatura erro2', error)
         set_display_temp('err2', 'T')
         capture_exception(error)
-        time.sleep(5)
+        DS18B20status = False
         return False
 
 from views import calc
@@ -560,12 +566,8 @@ def controleFlap(umid, setpoint):
 
 def main():
     global DS18B20status
-    try:
-        device_file = iniciaSensorTemp()
-        DS18B20status = True
-    except Exception as error:
-        DS18B20status = False
-        set_display_temp('er22', 'T')
+    device_file = iniciaSensorTemp()
+
     global SHTstatus
     time.sleep(3)
     try:
@@ -637,10 +639,13 @@ def main():
     # Derivativa
 
     try:
-        temperature_DS18B20 = read_temp(device_file)
-        temperatura_celcius = temperature_DS18B20[0]
-        temperatura_fahrenheit = temperature_DS18B20[1]
-        set_display_temp(temperature_DS18B20[1], configGeral.escala_temp)
+        print('carregando sensor de temperatura', DS18B20status)
+        if DS18B20status:
+            temperature_DS18B20 = read_temp(device_file)
+            print('depois de carregado')
+            temperatura_celcius = temperature_DS18B20[0]
+            temperatura_fahrenheit = temperature_DS18B20[1]
+            set_display_temp(temperature_DS18B20[1], configGeral.escala_temp)
     except RuntimeError as error:
         print('Sensor temperatura erro4', error.args[0])
         capture_exception(error)
@@ -699,6 +704,7 @@ def main():
                 temperatura_fahrenheit = 0
                 temperatura_celcius = 0
                 DS18B20status = False
+        print('707 valor de alerta vr', alerta_vr)
         if sensor:
             #SENSOR SHT31
             try:
@@ -736,8 +742,9 @@ def main():
 
         if configFaixa.etapa != 'Padrão': 
             alerta_vr = service.verificarAlerta(temperatura_fahrenheit, humidade, configFaixa, bd_umid, configGeral)#ok = 0, TA =11, TB=12, HA=33, HB=36, TA+HA=44, TA+HB=47, TB+HA=45, TB+HB=48
-
-
+        else:
+            alerta_vr = 0
+        print('746 valor de alerta vr', alerta_vr)
 
         #calculando média
         m = Medicao(float(temperatura_fahrenheit), float(humidade), float(temperaturaSHT_fahrenheit))
@@ -799,7 +806,7 @@ def main():
                     0,
                     motor_fornalha_status,
                     bd)
-
+        print('valor de alerta vr', alerta_vr)
         try:
             sio.emit('medicao', {'motor_status': motor_fornalha_status, 'temperatura': temperatura_fahrenheit, 'temperatura2': temperaturaSHT_fahrenheit, 'umidade': humidade, 'alerta': alerta_vr, 'updated': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())})
         except Exception as error:
@@ -810,13 +817,7 @@ def main():
         try:
             if vr % 2 == 0:
                 if not DS18B20status:
-                    try:
-                        device_file = iniciaSensorTemp()
-                        DS18B20status = True
-                    except Exception as error:
-                        capture_message('sensor temp não iniciado')
-                        DS18B20status = False
-                        set_display_temp('er23', 'T')
+                    device_file = iniciaSensorTemp()
                 #if not SHTstatus:
                 if not sensor:
                     try:
@@ -829,12 +830,11 @@ def main():
         except Exception as error:
             capture_exception(error)
             print('erro no  if vr % 2 == 0:', error)
-
         #if configFaixa.expiration < str(datetime.now()) :
         #    print('implementar lógica para pular etapa pq expirou')
 
         if not vr % 2: #para verificar o motor a cada 12s
-            #alerta_vr = service.verificarAlerta(temperatura_fahrenheit, humidade, configFaixa, bd_umid, configGeral)#ok = 0, TA =11, TB=12, HA=33, HB=36, TA+HA=44, TA+HB=47, TB+HA=45, TB+HB=48
+            alerta_vr = service.verificarAlerta(temperatura_fahrenheit, humidade, configFaixa, bd_umid, configGeral)#ok = 0, TA =11, TB=12, HA=33, HB=36, TA+HA=44, TA+HB=47, TB+HA=45, TB+HB=48
             if temperatura_fahrenheit > 0:
                 if temperatura_fahrenheit < configFaixa.temp_min - 1:
                     motor_fornalha_cont += 1
@@ -849,7 +849,6 @@ def main():
                     print('desligar motor ventoinha')
                     motor_fornalha_acionamento(motor_fornalha_status, 1)
 
-        
         #em produção trocar para 10min
         if contador_mudo_speak > 0:
             contador_mudo_speak -= 1
@@ -875,7 +874,8 @@ def main():
                     time.sleep(0.6)
                     if sensor:
                         set_display_umid(int(sensor.relative_humidity))
-                    set_display_temp(temperature_DS18B20[1], configGeral.escala_temp)
+                    if DS18B20status:    
+                        set_display_temp(temperature_DS18B20[1], configGeral.escala_temp)
 
             else:
                 time.sleep(4)
