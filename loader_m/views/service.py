@@ -149,18 +149,19 @@ def updt_medicao2(temperatura, temperatura_sht, umidade, alerta, flap_status, mo
         bdnew.criandoSQLiteMedicao(bd)
 
 def verificarAlerta(temperatura, umidade, config, bd_umid, configGeral):
+    #ok = 0, TA =11, TB=12, HA=33, HB=36, TA+HA=44, TA+HB=47, TB+HA=45, TB+HB=48
     global r
     r = 0
     if temperatura > 0:
-        if temperatura > config.temp_max + 5:
-            r = 11
-        elif temperatura < config.temp_min - 5:
-            r = 12
+        if temperatura < config.temp_max + 3:
+            r = 12 #TB
+        elif temperatura > config.temp_min - 3:
+            r = 11 #TA
     if umidade > 0:
-        if umidade > config.umid_max + 5:
-            r = r + 36
-        elif umidade < config.umid_min - 5:
-            r = r + 33
+        if umidade < config.umid_max + 2:
+            r = r + 36 #HB
+        elif umidade > config.umid_min - 2:
+            r = r + 33 #HA
     return r
 
 

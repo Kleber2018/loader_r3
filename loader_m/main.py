@@ -36,16 +36,30 @@ try:
     #GPIO.setup(21, GPIO.OUT) # LED 1
     #GPIO.setup(6, GPIO.OUT)
     #GPIO.setup(5, GPIO.OUT)
-    #GPIO.setup(13, GPIO.OUT)
+    GPIO.setup(27, GPIO.OUT) #motor fornalha
     GPIO.setup(26, GPIO.OUT) #led run
     GPIO.setup(12, GPIO.OUT) # speaker
-    GPIO.setup(20, GPIO.OUT) # Motor fornalha
-    #GPIO.setup(22, GPIO.OUT) # flap
+    GPIO.setup(20, GPIO.OUT) # led Motor fornalha
+    GPIO.setup(22, GPIO.OUT) # flap led
     GPIO.setup(7, GPIO.OUT) # flap comando 1
     GPIO.setup(18, GPIO.OUT) # flap comando 1
     GPIO.output(7, False)  # Acende o LED 1
     GPIO.output(18, False)  # Acende o LED 2
 
+    GPIO.output(27, False)  # Acende o LED 2
+    print('off')
+    time.sleep(20)
+    GPIO.output(27, True)  # Acende o LED 2
+    print('on')
+    time.sleep(20)
+    GPIO.output(27, False)  # Acende o LED 2
+    print('off')
+    time.sleep(20)
+    GPIO.output(27, True)  # Acende o LED 2
+    print('on')
+    time.sleep(20)
+    GPIO.output(27, False)  # Acende o LED 2
+    print('off')
     #GPIO.output(21, True)  # Acende o LED 1
     #GPIO.output(5, True)  # Acende o LED 2
     #GPIO.output(6, True)  # Acende o LED 3
@@ -147,12 +161,12 @@ def speaker_alerta(stat, vr, ct_mudo):#se retornar 1 é pq está habilitado o al
     except Exception as error:
         capture_exception(error)
 
-def motor_fornalha(stat, vr):#se retornar 1 é pq está habilitado o motor
+def motor_fornalha_acionamento(stat, vr):#se retornar 1 é pq está habilitado o motor
     try:
         if vr == 1:
-            GPIO.output(20, stat) #True or False
+            GPIO.output(27, stat) #True or False
         else:
-            GPIO.output(20, False)
+            GPIO.output(27, False)
     except Exception as error:
         capture_exception(error)
 
@@ -207,8 +221,7 @@ def set_led_run(vr):
         capture_exception(error)
         print('erro no led status')
 
-global flap_status #0 quer dizer no meio -10 aberto e +10 fechad0
-flap_status = 6
+
 
 def iniciaSensorTemp():
     try:
@@ -353,12 +366,13 @@ global contador_mudo_speak
 contador_mudo_speak = 0
 
 def PushButtonEtapa(channel):
+    print('botão etapa')
     global contador_click
     global contador_mudo_speak
     contador_mudo_speak = 500
     contador_click += 1
     if contador_click > 1:
-        PulaEtapa()
+        #PulaEtapa()
         contador_click = 0
     else:
         speaker_alerta(False, 0, contador_mudo_speak)
@@ -446,11 +460,19 @@ def verificaLedEtapa(etapa_faixa):
 try:
     # Executa as funções para desligar  sistema raspbian.
     #GPIO18 BOTÃO PULAR ETAPA
-    GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP) #ou 18 ou 21
-    GPIO.add_event_detect(16, GPIO.FALLING, callback=Login_livre, bouncetime=700)
+    GPIO.setup(6, GPIO.IN, pull_up_down=GPIO.PUD_UP) #ou 18 ou 21
+    GPIO.add_event_detect(6, GPIO.FALLING, callback=Login_livre, bouncetime=700)
 
     GPIO.setup(19, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.add_event_detect(19, GPIO.FALLING, callback=PushButtonEtapa, bouncetime=700)
+
+    #mais
+    GPIO.setup(5, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.add_event_detect(5, GPIO.FALLING, callback=PushButtonEtapa, bouncetime=700)
+
+    #menos
+    GPIO.setup(13, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.add_event_detect(13, GPIO.FALLING, callback=PushButtonEtapa, bouncetime=700)
 except RuntimeError as error:
     print('Erro na função de desligamento e liberar login', error.args[0])
     capture_exception(error)
@@ -498,50 +520,61 @@ def aciona_flap(comando, tempo):
     print('acionando flap', comando, tempo)
     try:
         tempo = tempo * 2
-        if comando == 'abrir':
+        if comando == 'fechar':
             GPIO.output(7, True)
+            GPIO.output(20, True)
             GPIO.output(18, False)
-            print('abrindo')
-            time.sleep(tempo)
-            GPIO.output(7, False)
-            print('abriu')
-        elif comando == 'fechar':
-            GPIO.output(18, True)
-            GPIO.output(7, False)
             print('fechando')
             time.sleep(tempo)
-            GPIO.output(18, False)
+            GPIO.output(7, False)
+            GPIO.output(20, False)
             print('fechou')
+        elif comando == 'abrir':
+            GPIO.output(18, True)
+            GPIO.output(20, True)
+            GPIO.output(7, False)
+            print('abrindo')
+            time.sleep(tempo)
+            GPIO.output(18, False)
+            GPIO.output(20, False)
+            print('abriu')
     except Exception as error:
         capture_exception(error)
         print('erro no acionamento do flap status')
+
+
+global flap_status #0 quer dizer no meio -10 aberto e +10 fechad0
+flap_status = 6
 
 global pid
 pid = PID(0.1, 0.1, 0.1, setpoint=50) 
 pid.output_limits = (0, 6) 
 
 def controleFlap(umid, setpoint):
-    #Umidade baixa (6) (fechado)
-    #umidade alta (0) (aberto)
+
     global pid
     pid.setpoint = setpoint #valor que deseja alcançar configGeral.temp
-    controle = pid(umid)
+    controle = pid(umid) 
+    #Umidade baixa (6) (fechado)
+    #umidade alta (0) (aberto)
     global flap_status
+
     correcao = flap_status-int(controle)
+
     flap_status = int(controle)
+
     print('controle pid:', controle, 'flap status:', flap_status, 'correção', correcao)
-    if correcao > 0:
-        #a correção precisa ser positiva
-        if flap_status == 6:
-            aciona_flap('fechar', correcao+2)
-        else:
-            aciona_flap('fechar', correcao)
-    elif correcao < 0:
-        #a correção precisa ser negativa
+
+    if correcao < 0: #retorno menor que zero é para fechar
         if flap_status == 0:
-            aciona_flap('abrir', -(correcao-2))
+            aciona_flap('fechar', -(correcao-2))
         else:
-            aciona_flap('abrir', -correcao)
+            aciona_flap('fechar', -correcao)
+    elif correcao > 0: #retorno maior que zero é para abrir
+        if flap_status == 6:
+            aciona_flap('abrir', correcao+2)
+        else:
+            aciona_flap('abrir', correcao)
      
 
 def main():
@@ -733,7 +766,7 @@ def main():
         # FALTA DENSEVOLER, PENDENTE
         # DESENVOLVER UM SISTEMA PARA ALTERAR O FLAP PARA MANUAL
         vr_flap += 1
-        if vr_flap > 10:
+        if vr_flap > 9:
             vr_flap = 0
             if int(humidade) > 0:
                 controleFlap(float(humidade), configFaixa.umid_max )
@@ -818,21 +851,22 @@ def main():
         #if configFaixa.expiration < str(datetime.now()) :
         #    print('implementar lógica para pular etapa pq expirou')
 
-        if not vr % 3: #para verificar o motor a cada 12s
-            alerta_vr = service.verificarAlerta(temperatura_fahrenheit, humidade, configFaixa, bd_umid, configGeral)#ok = 0, TA =11, TB=12, HA=33, HB=36, TA+HA=44, TA+HB=47, TB+HA=45, TB+HB=48
+        if not vr % 2: #para verificar o motor a cada 12s
+            #alerta_vr = service.verificarAlerta(temperatura_fahrenheit, humidade, configFaixa, bd_umid, configGeral)#ok = 0, TA =11, TB=12, HA=33, HB=36, TA+HA=44, TA+HB=47, TB+HA=45, TB+HB=48
             if temperatura_fahrenheit > 0:
                 if temperatura_fahrenheit < configFaixa.temp_min - 1:
                     motor_fornalha_cont += 1
-                    if motor_fornalha_cont > 5:
-                        if not motor_fornalha_status:
+                    if motor_fornalha_cont > 1: #almentar para 3
+                        if motor_fornalha_status == False:
                             motor_fornalha_status = True
-                            print('ligar motor ventoinha')
-                            motor_fornalha(motor_fornalha_status, 1)
+                            print('-----------------ligar motor ventoinha')
+                            motor_fornalha_acionamento(motor_fornalha_status, 1)
                 else:
                     motor_fornalha_cont = 0
-                    motor_fornalha_status = False
-                    print('desligar motor ventoinha')
-                    motor_fornalha(motor_fornalha_status, 1)
+                    if motor_fornalha_status == True:
+                        motor_fornalha_status = False
+                        print('desligar motor ventoinha')
+                        motor_fornalha_acionamento(motor_fornalha_status, 1)
 
         
         #em produção trocar para 10min
@@ -867,7 +901,6 @@ def main():
             alerta_sonoro_contador += 1
             configGeral = service.getLocalConfigGeral(bd_conf)
             configFaixa = service.getLocalConfigFaixa(bd_conf)
-            verificaLedEtapa(configFaixa.etapa)
             vr = vr+1
             if vr > 5 :
                 vr = 0
@@ -877,7 +910,6 @@ def main():
             if vr % 2:
                 configGeral = service.getLocalConfigGeral(bd_conf)
                 configFaixa = service.getLocalConfigFaixa(bd_conf)
-                verificaLedEtapa(configFaixa.etapa)
 
             if vr > 5 :
                 vr = 0
@@ -923,9 +955,8 @@ if __name__ == '__main__':
         print('erro66', error.args[0])
         print('atribuindo')
         time.sleep(5)
-        GPIO.output(7, False)  # Acende o LED 1
-        GPIO.output(18, False)  # Acende o LED 2
-        GPIO.output(26, False)
+        GPIO.output(7, False)  # flap comando
+        GPIO.output(18, False)  # flap comando
     except Exception as error:
         capture_exception(error)
         print('erro67', error)
