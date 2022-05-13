@@ -6,6 +6,7 @@ import json
 import os
 import ssl
 import time
+import paho.mqtt.client as mqtt
 
 class Medicao:
     def __init__(self, temp, umid, temp2):
@@ -13,6 +14,24 @@ class Medicao:
         self.umidade = umid
         self.temperatura2 = temp2
 
+class MedicaoMqtt:
+    def __init__(self, temp, umid, alert, id, time):
+        self.temp = temp
+        self.umid = umid
+        self.alert = alert
+        self.id = id
+        self.time = time
+
+
+Broker = "estufatabaco.cloud.shiftr.io" #broker publico utilizado.
+porta_broker = 1883 #porta utilizada para comunicacao com o broker MQTT
+                    #utilize a porta 1883 para comunicacao com conexao nao segura
+keep_alive_broker = 40 #tempo (em segundos) do keep-alive
+topico_subscribe = "Topico_1"  #topico MQTT que o programa ira "ouvir" (fazer subscribe)
+                                     #dica: troque o nome do topico por algo "unico", 
+                                     #Dessa maneira, ninguem ira saber seu topico de
+                                     #subscribe e interferir em seus testes
+#Callback - conexao ao broker realizada
 
 def getserial():
     #https://qastack.com.br/raspberrypi/2086/how-do-i-get-the-serial-number
@@ -30,6 +49,8 @@ def getserial():
 
 global ns
 ns = 'medidores/'+getserial()
+global id_ns
+id_ns = getserial()
 from sentry_sdk import capture_exception, capture_message, init
 try:
     aa = open('/etc/loader/load/sentry.conf', 'r')
@@ -147,6 +168,13 @@ def verify_firmware():
     armazenaLog('verify_firmware')
 
 def main():
+    try:
+        client = mqtt.Client(getserial())
+        client.username_pw_set("estufatabaco", "GqscH64RcmvHKZW6")
+        client.connect(Broker, porta_broker, keep_alive_broker)
+    except Exception as e:
+        capture_exception(e)
+
     sio = socketio.Client()
     global contador
     contador = 490
@@ -181,6 +209,12 @@ def main():
         if contador2 > 7:
             contador2 = 0
             data['cpu'] = round(get_cpu_temp())
+            try:
+                msgmqtt = {'temp': data['temperatura'], 'umid': data['umidade'], 'alert': data['alerta'], 'time': data['updated'] ,'id': id_ns }
+                client.publish(id_ns+"_moni", json.dumps(msgmqtt))
+                print("enviando ", json.dumps(data))
+            except Exception as e:
+                print('erro de mqtt', e)
             try:
                 db.child(ns).child("medicao").set(data, user['idToken']) #edita o mesmo arquivo
             except Exception as e:
@@ -218,6 +252,11 @@ def main():
                 print('armazenando', data)
                 user = auth_fire.sign_in_with_email_and_password(us['user'], us['key'])
                 db.child(ns).child("medicoes").push(data, user['idToken']) # cria novo arquivo
+                try:
+                    msgmqtt = {'temp': data['temperatura'], 'umid': data['umidade'], 'alert': data['alerta'], 'time': data['updated'] ,'id': id_ns }
+                    client.publish(id_ns+"_moni", json.dumps(msgmqtt))
+                except Exception as e:
+                    print('erro de mqtt', e)
             except Exception as e:
                 capture_exception(e)
                 print('erro de autenticação', e)
@@ -227,6 +266,7 @@ def main():
     def disconnect():
         print('disconnected from server')
     vr_erro = 0 #caso de erro de conexão ele tenta 10 vezes com intervalo de tempo exponencial
+
     while True:
         vr_erro = vr_erro+1
         try:
