@@ -942,7 +942,7 @@ if __name__ == '__main__':
         capture_exception(error)
         print('erro67', error)
         GPIO.output(26, False)
-        GPIO.output(28, False)
+
         GPIO.cleanup() #testar melhor
         time.sleep(2)
         main()

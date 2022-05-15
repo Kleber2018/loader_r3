@@ -26,7 +26,7 @@ class MedicaoMqtt:
 Broker = "estufatabaco.cloud.shiftr.io" #broker publico utilizado.
 porta_broker = 1883 #porta utilizada para comunicacao com o broker MQTT
                     #utilize a porta 1883 para comunicacao com conexao nao segura
-keep_alive_broker = 40 #tempo (em segundos) do keep-alive
+keep_alive_broker = 60 #tempo (em segundos) do keep-alive
 topico_subscribe = "Topico_1"  #topico MQTT que o programa ira "ouvir" (fazer subscribe)
                                      #dica: troque o nome do topico por algo "unico", 
                                      #Dessa maneira, ninguem ira saber seu topico de
@@ -172,6 +172,7 @@ def main():
         client = mqtt.Client(getserial())
         client.username_pw_set("estufatabaco", "GqscH64RcmvHKZW6")
         client.connect(Broker, porta_broker, keep_alive_broker)
+        client.loop_forever()
     except Exception as e:
         capture_exception(e)
 
@@ -210,11 +211,14 @@ def main():
             contador2 = 0
             data['cpu'] = round(get_cpu_temp())
             try:
-                msgmqtt = {'temp': data['temperatura'], 'umid': data['umidade'], 'alert': data['alerta'], 'time': data['updated'] ,'id': id_ns }
-                client.publish(id_ns+"_moni", json.dumps(msgmqtt))
-                print("enviando ", json.dumps(data))
+                #msgmqtt = {'temp': data['temperatura'], 'umid': data['umidade'], 'alert': data['alerta'], 'time': data['updated'] ,'id': id_ns }
+                client.publish(id_ns+"_moni", json.dumps({'temp': data['temperatura'], 'umid': data['umidade'], 'alert': data['alerta'], 'time': data['updated'] ,'id': id_ns }))
+                #print(json.dumps(msgmqtt))
+                capture_message( json.dumps({'temp': data['temperatura'], 'umid': data['umidade'], 'alert': data['alerta'], 'time': data['updated'] ,'id': id_ns }))
             except Exception as e:
                 print('erro de mqtt', e)
+                capture_exception(e)
+
             try:
                 db.child(ns).child("medicao").set(data, user['idToken']) #edita o mesmo arquivo
             except Exception as e:
@@ -253,8 +257,8 @@ def main():
                 user = auth_fire.sign_in_with_email_and_password(us['user'], us['key'])
                 db.child(ns).child("medicoes").push(data, user['idToken']) # cria novo arquivo
                 try:
-                    msgmqtt = {'temp': data['temperatura'], 'umid': data['umidade'], 'alert': data['alerta'], 'time': data['updated'] ,'id': id_ns }
-                    client.publish(id_ns+"_moni", json.dumps(msgmqtt))
+                    #msgmqtt = {'temp': data['temperatura'], 'umid': data['umidade'], 'alert': data['alerta'], 'time': data['updated'] ,'id': id_ns }
+                    client.publish(id_ns+"_moni", json.dumps({'temp': data['temperatura'], 'umid': data['umidade'], 'alert': data['alerta'], 'time': data['updated'] ,'id': id_ns }))
                 except Exception as e:
                     print('erro de mqtt', e)
             except Exception as e:
