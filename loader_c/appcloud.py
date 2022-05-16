@@ -172,7 +172,6 @@ def main():
         client = mqtt.Client(getserial())
         client.username_pw_set("estufatabaco", "GqscH64RcmvHKZW6")
         client.connect(Broker, porta_broker, keep_alive_broker)
-        client.loop_forever()
     except Exception as e:
         capture_exception(e)
 
@@ -214,7 +213,6 @@ def main():
                 #msgmqtt = {'temp': data['temperatura'], 'umid': data['umidade'], 'alert': data['alerta'], 'time': data['updated'] ,'id': id_ns }
                 client.publish(id_ns+"_moni", json.dumps({'temp': data['temperatura'], 'umid': data['umidade'], 'alert': data['alerta'], 'time': data['updated'] ,'id': id_ns }))
                 #print(json.dumps(msgmqtt))
-                capture_message( json.dumps({'temp': data['temperatura'], 'umid': data['umidade'], 'alert': data['alerta'], 'time': data['updated'] ,'id': id_ns }))
             except Exception as e:
                 print('erro de mqtt', e)
                 capture_exception(e)
@@ -258,6 +256,7 @@ def main():
                 db.child(ns).child("medicoes").push(data, user['idToken']) # cria novo arquivo
                 try:
                     #msgmqtt = {'temp': data['temperatura'], 'umid': data['umidade'], 'alert': data['alerta'], 'time': data['updated'] ,'id': id_ns }
+                    capture_message( json.dumps({'temp': data['temperatura'], 'umid': data['umidade'], 'alert': data['alerta'], 'time': data['updated'] ,'id': id_ns }))
                     client.publish(id_ns+"_moni", json.dumps({'temp': data['temperatura'], 'umid': data['umidade'], 'alert': data['alerta'], 'time': data['updated'] ,'id': id_ns }))
                 except Exception as e:
                     print('erro de mqtt', e)
